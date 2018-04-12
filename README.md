@@ -14,20 +14,23 @@ Objective - C版本地址：[SWQRCode oc 版本](https://github.com/RockChanel/S
  
 `SWQRCode_Swift` 主要 API :
 
-    // MARK: - 恢复/暂停扫一扫功能
+    // MARK: - 扫一扫Api
     extension SWQRCodeViewController {
         
-        /// 恢复扫一扫功能
-        private func _resumeScanning() {
-            self.session.startRunning()
-            self.scannerView.sw_addScannerLineAnimation()
+        /// 处理扫一扫结果
+        ///
+        /// - Parameter value: 扫描结果
+        func sw_handle(value: String) {
+            print("sw_handle === \(value)")
         }
         
-        /// 暂停扫一扫功能
-        private func _pauseScanning() {
-            self.session.stopRunning()
-            self.scannerView.sw_pauseScannerLineAnimation()
+        /// 相册选取图片无法读取数据
+        func sw_didReadFromAlbumFailed() {
+            print("sw_didReadFromAlbumFailed")
         }
     }
+
+
+
 
 
