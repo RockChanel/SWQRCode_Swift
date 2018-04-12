@@ -81,10 +81,12 @@ class SWQRCodeViewController: UIViewController {
             
             metadataOutput.metadataObjectTypes = SWQRCodeManager.sw_metadataObjectTypes(type: self.config.scannerType)
             
-            let videoPreviewLayer = AVCaptureVideoPreviewLayer(session: self.session)
-            videoPreviewLayer.videoGravity = .resizeAspectFill
-            videoPreviewLayer.frame = self.view.layer.bounds
-            self.view.layer.insertSublayer(videoPreviewLayer, at: 0)
+            DispatchQueue.main.async {
+                let videoPreviewLayer = AVCaptureVideoPreviewLayer(session: self.session)
+                videoPreviewLayer.videoGravity = .resizeAspectFill
+                videoPreviewLayer.frame = self.view.layer.bounds
+                self.view.layer.insertSublayer(videoPreviewLayer, at: 0)
+            }
             
             self.session.startRunning()
         }
