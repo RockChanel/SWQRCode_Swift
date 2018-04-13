@@ -50,7 +50,9 @@ class SWQRCodeViewController: UIViewController {
         // 校验相机权限
         SWQRCodeManager.sw_checkCamera { (granted) in
             if granted {
-                self._setupScanner()
+                DispatchQueue.main.async {
+                    self._setupScanner()
+                }
             }
         }
     }
@@ -64,6 +66,10 @@ class SWQRCodeViewController: UIViewController {
         if let deviceInput = try? AVCaptureDeviceInput(device: device) {
             let metadataOutput = AVCaptureMetadataOutput()
             metadataOutput.setMetadataObjectsDelegate(self, queue: .main)
+            
+            if self.config.scannerArea == .def {
+                metadataOutput.rectOfInterest = CGRect(x: self.scannerView.scanner_y/self.view.frame.size.height, y: self.scannerView.scanner_x/self.view.frame.size.width, width: self.scannerView.scanner_width/self.view.frame.size.height, height: self.scannerView.scanner_width/self.view.frame.size.width)
+            }
             
             let videoDataOutput = AVCaptureVideoDataOutput()
             videoDataOutput.setSampleBufferDelegate(self, queue: .main)
@@ -81,12 +87,10 @@ class SWQRCodeViewController: UIViewController {
             
             metadataOutput.metadataObjectTypes = SWQRCodeManager.sw_metadataObjectTypes(type: self.config.scannerType)
             
-            DispatchQueue.main.async {
-                let videoPreviewLayer = AVCaptureVideoPreviewLayer(session: self.session)
-                videoPreviewLayer.videoGravity = .resizeAspectFill
-                videoPreviewLayer.frame = self.view.layer.bounds
-                self.view.layer.insertSublayer(videoPreviewLayer, at: 0)
-            }
+            let videoPreviewLayer = AVCaptureVideoPreviewLayer(session: self.session)
+            videoPreviewLayer.videoGravity = .resizeAspectFill
+            videoPreviewLayer.frame = self.view.layer.bounds
+            self.view.layer.insertSublayer(videoPreviewLayer, at: 0)
             
             self.session.startRunning()
         }

@@ -21,9 +21,12 @@ private var flashlightKey: Void?
 
 class SWScannerView: UIView {
     
-    private var scanner_width: CGFloat! /** 扫描器宽度 */
-    private var scanner_x: CGFloat! /** 扫描器初始x值 */
-    private var scanner_y: CGFloat! /** 扫描器初始y值 */
+    /** 扫描器宽度 */
+    var scanner_width: CGFloat!
+    /** 扫描器初始x值 */
+    var scanner_x: CGFloat!
+    /** 扫描器初始y值 */
+    var scanner_y: CGFloat!
     
     var config: SWQRCodeConfig!
     var activityIndicator: UIActivityIndicatorView!
