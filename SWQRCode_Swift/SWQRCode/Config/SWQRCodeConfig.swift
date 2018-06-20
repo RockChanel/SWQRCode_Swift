@@ -28,17 +28,15 @@ enum SWScannerArea {
     case fullscreen
 }
 
-class SWQRCodeConfig: NSObject {
-    
+struct SWQRCodeCompat {
     /// 扫描器类型 默认支持二维码以及条码
     var scannerType: SWScannerType = .both
-    
     /// 扫描区域
     var scannerArea: SWScannerArea = .def
     
     /// 棱角颜色 默认RGB色值 r:63 g:187 b:54 a:1.0
     var scannerCornerColor: UIColor = UIColor(red: 63/255.0, green: 187/255.0, blue: 54/255.0, alpha: 1.0)
-
+    
     /// 边框颜色 默认白色
     var scannerBorderColor: UIColor = .white
     

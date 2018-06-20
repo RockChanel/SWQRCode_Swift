@@ -9,22 +9,22 @@
 import UIKit
 import Photos
 
-class SWQRCodeManager: NSObject {
-
+struct SWQRCodeHelper {
+    
     /** 校验是否有相机权限 */
     static func sw_checkCamera(completion: @escaping (_ granted: Bool) -> Void) {
         let videoAuthStatus = AVCaptureDevice.authorizationStatus(for: .video)
         
         switch videoAuthStatus {
-            // 已授权
+        // 已授权
         case .authorized:
             completion(true)
-            // 未询问用户是否授权
+        // 未询问用户是否授权
         case .notDetermined:
             AVCaptureDevice.requestAccess(for: .video, completionHandler: { (granted) in
                 completion(granted)
             })
-            // 用户拒绝授权或权限受限
+        // 用户拒绝授权或权限受限
         case .denied, .restricted:
             let alter = UIAlertView(title: "请在”设置-隐私-相机”选项中，允许访问你的相机", message: nil, delegate: nil, cancelButtonTitle: "确定")
             alter.show()
@@ -37,15 +37,15 @@ class SWQRCodeManager: NSObject {
         let photoAuthStatus = PHPhotoLibrary.authorizationStatus()
         
         switch photoAuthStatus {
-            // 已授权
+        // 已授权
         case .authorized:
             completion(true)
-            // 未询问用户是否授权
+        // 未询问用户是否授权
         case .notDetermined:
             PHPhotoLibrary.requestAuthorization({ (status) in
                 completion(status == .authorized)
             })
-            // 用户拒绝授权或权限受限
+        // 用户拒绝授权或权限受限
         case .denied, .restricted:
             let alter = UIAlertView(title: "请在”设置-隐私-相片”选项中，允许访问你的相册", message: nil, delegate: nil, cancelButtonTitle: "确定")
             alter.show()

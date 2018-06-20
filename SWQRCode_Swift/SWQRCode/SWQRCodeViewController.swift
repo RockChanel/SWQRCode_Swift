@@ -11,18 +11,19 @@ import AVFoundation
 
 class SWQRCodeViewController: UIViewController {
     
-    var config = SWQRCodeConfig()
-    let session = AVCaptureSession()
+    var config = SWQRCodeCompat()
+    private let session = AVCaptureSession()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        self.navigationItem.title = SWQRCodeManager.sw_navigationItemTitle(type: self.config.scannerType)
-        _setupUI();
+        navigationItem.title = SWQRCodeHelper.sw_navigationItemTitle(type: self.config.scannerType)
         
         NotificationCenter.default.addObserver(self, selector: #selector(appDidBecomeActive), name: .UIApplicationDidBecomeActive, object: nil)
         
         NotificationCenter.default.addObserver(self, selector: #selector(appWillResignActive), name: .UIApplicationWillResignActive, object: nil)
+        
+        _setupUI();
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -34,21 +35,21 @@ class SWQRCodeViewController: UIViewController {
         super.viewWillDisappear(animated)
         
         // 关闭并隐藏手电筒
-        self.scannerView.sw_setFlashlight(on: false)
-        self.scannerView.sw_hideFlashlight(animated: true)
+        scannerView.sw_setFlashlight(on: false)
+        scannerView.sw_hideFlashlight(animated: true)
     }
     
     private func _setupUI() {
-        self.view.backgroundColor = .black
+        view.backgroundColor = .black
         
         let albumItem = UIBarButtonItem(title: "相册", style: .plain, target: self, action: #selector(showAlbum))
         albumItem.tintColor = .black
-        self.navigationItem.rightBarButtonItem = albumItem;
+        navigationItem.rightBarButtonItem = albumItem;
         
-        self.view.addSubview(self.scannerView)
+        view.addSubview(scannerView)
         
         // 校验相机权限
-        SWQRCodeManager.sw_checkCamera { (granted) in
+        SWQRCodeHelper.sw_checkCamera { (granted) in
             if granted {
                 DispatchQueue.main.async {
                     self._setupScanner()
@@ -67,37 +68,31 @@ class SWQRCodeViewController: UIViewController {
             let metadataOutput = AVCaptureMetadataOutput()
             metadataOutput.setMetadataObjectsDelegate(self, queue: .main)
             
-            if self.config.scannerArea == .def {
-                metadataOutput.rectOfInterest = CGRect(x: self.scannerView.scanner_y/self.view.frame.size.height, y: self.scannerView.scanner_x/self.view.frame.size.width, width: self.scannerView.scanner_width/self.view.frame.size.height, height: self.scannerView.scanner_width/self.view.frame.size.width)
+            if config.scannerArea == .def {
+                metadataOutput.rectOfInterest = CGRect(x: scannerView.scanner_y/view.frame.size.height, y: scannerView.scanner_x/view.frame.size.width, width: scannerView.scanner_width/view.frame.size.height, height: scannerView.scanner_width/view.frame.size.width)
             }
             
             let videoDataOutput = AVCaptureVideoDataOutput()
             videoDataOutput.setSampleBufferDelegate(self, queue: .main)
             
-            self.session.canSetSessionPreset(.high)
-            if self.session.canAddInput(deviceInput) {
-                self.session.addInput(deviceInput)
-            }
-            if self.session.canAddOutput(metadataOutput) {
-                self.session.addOutput(metadataOutput)
-            }
-            if self.session.canAddOutput(videoDataOutput) {
-                self.session.addOutput(videoDataOutput)
-            }
+            session.canSetSessionPreset(.high)
+            if session.canAddInput(deviceInput) { session.addInput(deviceInput) }
+            if session.canAddOutput(metadataOutput) { session.addOutput(metadataOutput) }
+            if session.canAddOutput(videoDataOutput) { session.addOutput(videoDataOutput) }
             
-            metadataOutput.metadataObjectTypes = SWQRCodeManager.sw_metadataObjectTypes(type: self.config.scannerType)
+            metadataOutput.metadataObjectTypes = SWQRCodeHelper.sw_metadataObjectTypes(type: config.scannerType)
             
-            let videoPreviewLayer = AVCaptureVideoPreviewLayer(session: self.session)
+            let videoPreviewLayer = AVCaptureVideoPreviewLayer(session: session)
             videoPreviewLayer.videoGravity = .resizeAspectFill
-            videoPreviewLayer.frame = self.view.layer.bounds
-            self.view.layer.insertSublayer(videoPreviewLayer, at: 0)
+            videoPreviewLayer.frame = view.layer.bounds
+            view.layer.insertSublayer(videoPreviewLayer, at: 0)
             
-            self.session.startRunning()
+            session.startRunning()
         }
     }
     
     @objc func showAlbum() {
-        SWQRCodeManager.sw_checkAlbum { (granted) in
+        SWQRCodeHelper.sw_checkAlbum { (granted) in
             if granted {
                 self.imagePicker()
             }
@@ -109,7 +104,7 @@ class SWQRCodeViewController: UIViewController {
         let imagePicker = UIImagePickerController()
         imagePicker.sourceType = .photoLibrary
         imagePicker.delegate = self
-        self.present(imagePicker, animated: true, completion: nil)
+        present(imagePicker, animated: true, completion: nil)
     }
 
     /// 从后台进入前台
@@ -123,13 +118,12 @@ class SWQRCodeViewController: UIViewController {
     }
     
     lazy var scannerView:SWScannerView = {
-        let tempScannerView = SWScannerView(frame: self.view.bounds, config: self.config)
+        let tempScannerView = SWScannerView(frame: view.bounds, config: config)
         return tempScannerView
     }()
     
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
     }
 }
 
@@ -156,7 +150,7 @@ extension SWQRCodeViewController: AVCaptureMetadataOutputObjectsDelegate {
 
         if metadataObjects.count > 0 {
             _pauseScanning()
-        
+
             if let metadataObject = metadataObjects[0] as? AVMetadataMachineReadableCodeObject {
                 if let stringValue = metadataObject.stringValue {
                     sw_handle(value: stringValue)
@@ -170,22 +164,19 @@ extension SWQRCodeViewController: AVCaptureMetadataOutputObjectsDelegate {
 extension SWQRCodeViewController: AVCaptureVideoDataOutputSampleBufferDelegate {
     
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
-        
         let metadataDict = CMCopyDictionaryOfAttachments(nil, sampleBuffer, kCMAttachmentMode_ShouldPropagate)
         
-        if let metadata = metadataDict as? [AnyHashable: Any]{
+        if let metadata = metadataDict as? [AnyHashable: Any] {
             if let exifMetadata = metadata[kCGImagePropertyExifDictionary as String] as? [AnyHashable: Any] {
                 if let brightness = exifMetadata[kCGImagePropertyExifBrightnessValue as String] as? NSNumber {
-                    
                     // 亮度值
                     let brightnessValue = brightness.floatValue
-                    if !self.scannerView.sw_setFlashlightOn() {
+                    if !scannerView.sw_setFlashlightOn() {
                         if brightnessValue < -4.0 {
-                            self.scannerView.sw_showFlashlight(animated: true)
+                            scannerView.sw_showFlashlight(animated: true)
                         }
-                        else
-                        {
-                            self.scannerView.sw_hideFlashlight(animated: true)
+                        else {
+                            scannerView.sw_hideFlashlight(animated: true)
                         }
                     }
                 }
@@ -198,7 +189,6 @@ extension SWQRCodeViewController: AVCaptureVideoDataOutputSampleBufferDelegate {
 extension SWQRCodeViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]) {
-        
         picker.dismiss(animated: true) {
             if !self.handlePickInfo(info) {
                 self.sw_didReadFromAlbumFailed()
@@ -207,8 +197,7 @@ extension SWQRCodeViewController: UIImagePickerControllerDelegate, UINavigationC
     }
     
     /// 识别二维码并返回识别结果
-    func handlePickInfo(_ info: [String : Any]) -> Bool {
-        
+    private func handlePickInfo(_ info: [String : Any]) -> Bool {
         if let pickImage = info[UIImagePickerControllerOriginalImage] as? UIImage {
             let ciImage = CIImage(cgImage: pickImage.cgImage!)
             let detector = CIDetector(ofType: CIDetectorTypeQRCode, context: nil, options: [CIDetectorAccuracy:CIDetectorAccuracyHigh])
@@ -217,7 +206,7 @@ extension SWQRCodeViewController: UIImagePickerControllerDelegate, UINavigationC
                 let firstFeature = features.first as? CIQRCodeFeature{
 
                 if let stringValue = firstFeature.messageString {
-                    self.sw_handle(value: stringValue)
+                    sw_handle(value: stringValue)
                     return true
                 }
                 return false
@@ -232,14 +221,14 @@ extension SWQRCodeViewController {
     
     /// 恢复扫一扫功能
     private func _resumeScanning() {
-        self.session.startRunning()
-        self.scannerView.sw_addScannerLineAnimation()
+        session.startRunning()
+        scannerView.sw_addScannerLineAnimation()
     }
     
     /// 暂停扫一扫功能
     private func _pauseScanning() {
-        self.session.stopRunning()
-        self.scannerView.sw_pauseScannerLineAnimation()
+        session.stopRunning()
+        scannerView.sw_pauseScannerLineAnimation()
     }
 }
 

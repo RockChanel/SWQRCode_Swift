@@ -28,10 +28,10 @@ class SWScannerView: UIView {
     /** 扫描器初始y值 */
     var scanner_y: CGFloat!
     
-    var config: SWQRCodeConfig!
-    var activityIndicator: UIActivityIndicatorView!
+    var config: SWQRCodeCompat!
+    private var activityIndicator: UIActivityIndicatorView!
     
-    init(frame: CGRect, config: SWQRCodeConfig) {
+    init(frame: CGRect, config: SWQRCodeCompat) {
         super.init(frame: frame)
         
         scanner_width = 0.7*self.frame.size.width
@@ -54,7 +54,7 @@ class SWScannerView: UIView {
     }
     
 // MARK: - 手电筒点击事件
-    @objc func flashlightClicked(button: UIButton) {
+    @objc private func flashlightClicked(button: UIButton) {
         button.isSelected = !button.isSelected
         sw_setFlashlight(on: button.isSelected)
     }
@@ -112,14 +112,14 @@ class SWScannerView: UIView {
     }
     
     /** 扫描线条 */
-    lazy var scannerLine: UIImageView = {
+    private lazy var scannerLine: UIImageView = {
         let tempScannerLine = UIImageView(frame: CGRect(x: scanner_x, y: scanner_y, width: scanner_width, height: scanner_lineHeight))
         tempScannerLine.image = UIImage(named: "SWQRCode.bundle/ScannerLine")
         return tempScannerLine
     }()
     
     /** 扫描器下方提示文字 */
-    lazy var tipLab: UILabel = {
+    private lazy var tipLab: UILabel = {
         let tempTipLab = UILabel(frame: CGRect(x: 0, y: scanner_y + scanner_width, width: self.frame.size.width, height: 50))
         tempTipLab.textAlignment = .center
         tempTipLab.textColor = .lightGray
@@ -129,7 +129,7 @@ class SWScannerView: UIView {
     }()
     
     /** 手电筒开关 */
-    lazy var flashlightBtn: UIButton = {
+    private lazy var flashlightBtn: UIButton = {
         let tempFlashlightBtn = UIButton(type: .custom)
         tempFlashlightBtn.frame = CGRect(x: (self.frame.size.width - flashlightBtn_width)/2, y: scanner_y + scanner_width - 15 - flashlightLab_height - flashlightBtn_width, width: flashlightBtn_width, height: flashlightBtn_width)
         tempFlashlightBtn.isEnabled = false
@@ -141,7 +141,7 @@ class SWScannerView: UIView {
     }()
     
     /** 手电筒提示文字 */
-    lazy var flashlightLab: UILabel = {
+    private lazy var flashlightLab: UILabel = {
         let tempFlashlightLab = UILabel(frame: CGRect(x: scanner_x, y: scanner_y + scanner_width - 10 - flashlightLab_height, width: scanner_width, height: flashlightLab_height))
         tempFlashlightLab.font = UIFont.systemFont(ofSize: 12)
         tempFlashlightLab.textColor = .white
@@ -251,7 +251,7 @@ extension SWScannerView {
     
     /** 设置手电筒开关 */
     func sw_setFlashlight(on: Bool) {
-        SWQRCodeManager.sw_flashlight(on: on)
+        SWQRCodeHelper.sw_flashlight(on: on)
         self.flashlightLab.text = on ? "轻触关闭":"轻触照亮"
         self.flashlightBtn.isSelected = on;
         objc_setAssociatedObject(self, &flashlightKey, on, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
